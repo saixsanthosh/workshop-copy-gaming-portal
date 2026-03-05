@@ -369,14 +369,33 @@
       else { strengthFill.classList.add('strong'); strengthText.classList.add('strong'); strengthText.textContent = 'Strong password'; }
     }
 
-    function handleSocialLogin(provider, event) {
+    async function handleSocialLogin(provider, event) {
       const btn = event?.currentTarget;
       if (btn) btn.classList.add('loading');
-      const callback = '/dashboard.html';
-      showToast('Redirecting', `Opening ${provider === 'github' ? 'GitHub' : 'Google'} sign-in...`);
-      setTimeout(() => {
+
+      try {
+        const response = await fetch('/api/auth/providers', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`providers_${response.status}`);
+        }
+
+        const providers = await response.json();
+        if (!providers || !providers[provider]) {
+          showToast('Provider Not Ready', `${provider === 'github' ? 'GitHub' : 'Google'} login is not configured yet.`);
+          setTimeout(() => {
+            alert('OAuth provider is missing. Add provider env vars in Vercel and configure callback URLs.');
+          }, 250);
+          return;
+        }
+
+        const callback = '/dashboard.html';
+        showToast('Redirecting', `Opening ${provider === 'github' ? 'GitHub' : 'Google'} sign-in...`);
         window.location.href = `/api/auth/signin/${provider}?callbackUrl=${encodeURIComponent(callback)}`;
-      }, 350);
+      } catch (error) {
+        showToast('Login Error', 'Authentication service is unavailable right now.');
+      } finally {
+        if (btn) btn.classList.remove('loading');
+      }
     }
 
     function guestLogin() {
@@ -523,7 +542,22 @@
     function showAuthError() {
       const p = new URLSearchParams(window.location.search);
       const e = p.get('error');
-      if (e) showToast('Login Error', `Authentication failed: ${e}`);
+      if (!e) return;
+
+      const errorMap = {
+        Configuration: 'Server auth configuration is incomplete.',
+        AccessDenied: 'Access was denied by the provider.',
+        OAuthSignin: 'Could not start OAuth sign-in.',
+        OAuthCallback: 'OAuth callback failed. Check callback URL setup.',
+        OAuthCreateAccount: 'Could not create OAuth account.',
+        Callback: 'Auth callback failed.',
+        OAuthAccountNotLinked: 'This email is already linked with a different login method.',
+        EmailCreateAccount: 'Could not create account with email.',
+        Verification: 'Verification token expired or invalid.',
+        Default: 'Authentication failed. Please try again.',
+      };
+
+      showToast('Login Error', errorMap[e] || `Authentication failed: ${e}`);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
