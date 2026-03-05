@@ -26,9 +26,25 @@
         radial-gradient(1000px 750px at 50% 90%, rgba(35, 188, 255, 0.12), transparent 62%),
         linear-gradient(160deg, #02040b 0%, #060d1f 40%, #0c1940 100%);
     }
-    .scene, .overlay, .nebula, .vignette, .grain, .orbits, .comet-layer, .dust-layer { position: fixed; inset: 0; pointer-events: none; }
+    .scene, .overlay, .nebula, .vignette, .grain, .orbits, .comet-layer, .dust-layer, .micro-stars, .holo-lines, .constellation-layer, .signal-wave { position: fixed; inset: 0; pointer-events: none; }
     .scene { z-index: 0; }
     #spaceCanvas { width: 100%; height: 100%; display: block; }
+    .micro-stars {
+      z-index: 1;
+      opacity: 0.34;
+      background-image:
+        radial-gradient(rgba(235, 245, 255, 0.9) 0.45px, transparent 0.45px),
+        radial-gradient(rgba(206, 225, 255, 0.5) 0.32px, transparent 0.32px),
+        radial-gradient(rgba(182, 209, 255, 0.4) 0.25px, transparent 0.25px);
+      background-size: 3px 3px, 5px 5px, 7px 7px;
+      background-position: 0 0, 20px 10px, 40px 30px;
+      mix-blend-mode: screen;
+      animation: microShift 30s linear infinite;
+    }
+    @keyframes microShift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-80px, -120px, 0); }
+    }
     .nebula {
       z-index: 1;
       background:
@@ -46,12 +62,74 @@
       z-index: 6;
       background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.55) 100%);
     }
+    .holo-lines {
+      z-index: 5;
+      opacity: 0.18;
+      background:
+        linear-gradient(90deg, rgba(137, 187, 255, 0) 0, rgba(137, 187, 255, 0.5) 50%, rgba(137, 187, 255, 0) 100%) 0 0 / 100% 1px no-repeat,
+        repeating-linear-gradient(to right, rgba(127, 170, 245, 0.16) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(to bottom, rgba(127, 170, 245, 0.14) 0 1px, transparent 1px 48px);
+      mask-image: radial-gradient(circle at 50% 60%, black 0%, black 42%, transparent 100%);
+      animation: holoDrift 16s linear infinite;
+    }
+    @keyframes holoDrift {
+      from { transform: translateY(0); }
+      to { transform: translateY(-48px); }
+    }
     .grain {
       z-index: 7;
       opacity: 0.08;
       background-image: radial-gradient(rgba(255,255,255,0.9) 0.5px, transparent 0.5px);
       background-size: 4px 4px;
       mix-blend-mode: soft-light;
+    }
+    .signal-wave {
+      z-index: 4;
+      overflow: hidden;
+    }
+    .signal-wave::before {
+      content: '';
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      left: -10%;
+      top: -10%;
+      border-radius: 50%;
+      border: 1px solid rgba(142, 186, 255, 0.32);
+      filter: blur(1px);
+      animation: signalPulse 6s ease-in-out infinite;
+    }
+    .signal-left::before {
+      transform-origin: 20% 78%;
+      animation-delay: 1.4s;
+    }
+    .signal-right::before {
+      transform-origin: 80% 22%;
+      animation-delay: 3s;
+      border-color: rgba(179, 146, 255, 0.3);
+    }
+    @keyframes signalPulse {
+      0%, 100% { transform: scale(0.45); opacity: 0.1; }
+      50% { transform: scale(1.12); opacity: 0.4; }
+    }
+    .constellation-layer {
+      z-index: 4;
+      opacity: 0.45;
+    }
+    .constellation-dot {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: rgba(194, 228, 255, 0.9);
+      box-shadow: 0 0 8px rgba(166, 212, 255, 0.8);
+    }
+    .constellation-line {
+      position: absolute;
+      transform-origin: 0 0;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(166, 211, 255, 0.5), rgba(166, 211, 255, 0.05));
+      opacity: 0.35;
     }
     .orbits { z-index: 2; }
     .planet {
@@ -263,7 +341,12 @@
 </head>
 <body>
   <div class="scene"><canvas id="spaceCanvas"></canvas></div>
+  <div class="micro-stars"></div>
   <div class="nebula"></div>
+  <div class="holo-lines"></div>
+  <div class="signal-wave signal-left"></div>
+  <div class="signal-wave signal-right"></div>
+  <div class="constellation-layer" id="constellationLayer"></div>
   <div class="orbits">
     <div class="planet planet-a"></div>
     <div class="planet planet-b"></div>
@@ -439,7 +522,7 @@
 
     function initDust() {
       const layer = document.getElementById('dustLayer');
-      for (let i = 0; i < 160; i++) {
+      for (let i = 0; i < 420; i++) {
         const dust = document.createElement('div');
         dust.className = 'dust';
         dust.style.left = `${Math.random() * 100}%`;
@@ -471,9 +554,20 @@
         canvas.height = Math.floor(height * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         stars.length = 0;
-        const count = Math.min(520, Math.max(260, Math.floor((width * height) / 3600)));
+        const count = Math.min(1800, Math.max(720, Math.floor((width * height) / 1200)));
         for (let i = 0; i < count; i++) {
-          stars.push({ x: rand(0, width), y: rand(0, height), s: rand(0.4, 2.1), a: rand(0.2, 0.9), t: rand(0.25, 1.4), p: rand(0, Math.PI * 2), h: rand(195, 240), dx: rand(-0.08, 0.08), dy: rand(-0.05, 0.05) });
+          stars.push({
+            x: rand(0, width),
+            y: rand(0, height),
+            s: rand(0.16, 1.85),
+            a: rand(0.14, 0.95),
+            t: rand(0.2, 1.55),
+            p: rand(0, Math.PI * 2),
+            h: rand(190, 245),
+            dx: rand(-0.08, 0.08),
+            dy: rand(-0.05, 0.05),
+            g: Math.random() > 0.95
+          });
         }
       }
 
@@ -516,6 +610,12 @@
           ctx.beginPath();
           ctx.arc(s.x + px, s.y + py, s.s, 0, Math.PI * 2);
           ctx.fill();
+          if (s.g) {
+            ctx.fillStyle = `hsla(${s.h},100%,92%,${Math.max(alpha * 0.16, 0.03)})`;
+            ctx.beginPath();
+            ctx.arc(s.x + px, s.y + py, s.s * 3.1, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
 
         meteorCd -= dt * 1000;
@@ -537,6 +637,49 @@
       window.addEventListener('pointerleave', () => { pointer.tx = 0; pointer.ty = 0; });
       resize();
       requestAnimationFrame(frame);
+    }
+
+    function initConstellationLayer() {
+      const layer = document.getElementById('constellationLayer');
+      if (!layer) return;
+
+      const nodeCount = 180;
+      const nodes = [];
+
+      for (let i = 0; i < nodeCount; i++) {
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        nodes.push({ x, y });
+        const dot = document.createElement('div');
+        dot.className = 'constellation-dot';
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
+        dot.style.opacity = `${Math.random() * 0.7 + 0.2}`;
+        dot.style.transform = `scale(${Math.random() * 1.6 + 0.4})`;
+        layer.appendChild(dot);
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        let links = 0;
+        for (let j = i + 1; j < nodes.length && links < 3; j++) {
+          const b = nodes[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 110 && Math.random() > 0.68) {
+            const line = document.createElement('div');
+            line.className = 'constellation-line';
+            line.style.left = `${a.x}px`;
+            line.style.top = `${a.y}px`;
+            line.style.width = `${dist}px`;
+            line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+            line.style.opacity = `${Math.max(0.08, 1 - dist / 130)}`;
+            layer.appendChild(line);
+            links++;
+          }
+        }
+      }
     }
 
     function showAuthError() {
@@ -564,6 +707,7 @@
       initStarfield();
       initComets();
       initDust();
+      initConstellationLayer();
       showAuthError();
       document.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleEmailLogin(); });
     });

@@ -58,6 +58,96 @@
                 radial-gradient(ellipse at 20% 80%, rgba(255, 125, 210, 0.06) 0%, transparent 50%);
         }
 
+        .sector-grid {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.14;
+            background:
+                repeating-linear-gradient(to right, rgba(148, 196, 255, 0.12) 0 1px, transparent 1px 60px),
+                repeating-linear-gradient(to bottom, rgba(148, 196, 255, 0.12) 0 1px, transparent 1px 60px);
+            mask-image: radial-gradient(circle at 50% 58%, black 0%, black 44%, transparent 100%);
+            animation: sector-grid-shift 18s linear infinite;
+        }
+
+        @keyframes sector-grid-shift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-60px); }
+        }
+
+        .hud-rings {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .hud-rings::before,
+        .hud-rings::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(138, 190, 255, 0.24);
+            filter: blur(0.2px);
+            animation: hud-ring-spin 40s linear infinite;
+        }
+
+        .hud-rings::before {
+            width: 55vw;
+            height: 55vw;
+            min-width: 420px;
+            min-height: 420px;
+            left: -10vw;
+            top: 38vh;
+            border-top-color: rgba(126, 208, 255, 0.48);
+            border-right-color: rgba(126, 208, 255, 0.16);
+        }
+
+        .hud-rings::after {
+            width: 40vw;
+            height: 40vw;
+            min-width: 330px;
+            min-height: 330px;
+            right: -12vw;
+            top: 8vh;
+            border-left-color: rgba(188, 148, 255, 0.45);
+            border-bottom-color: rgba(188, 148, 255, 0.14);
+            animation-duration: 55s;
+            animation-direction: reverse;
+        }
+
+        @keyframes hud-ring-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .constellation-net {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.38;
+        }
+
+        .const-node {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: rgba(208, 234, 255, 0.95);
+            box-shadow: 0 0 8px rgba(162, 213, 255, 0.7);
+        }
+
+        .const-link {
+            position: absolute;
+            transform-origin: 0 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(167, 214, 255, 0.55), rgba(167, 214, 255, 0.05));
+            opacity: 0.24;
+        }
+
         @keyframes background-shift {
             0%, 100% { filter: hue-rotate(0deg) brightness(1); }
             50% { filter: hue-rotate(10deg) brightness(1.1); }
@@ -944,6 +1034,9 @@
     <div class="space-background"></div>
     <canvas class="starfield-canvas" id="starfieldCanvas" aria-hidden="true"></canvas>
     <div class="space-vignette" aria-hidden="true"></div>
+    <div class="sector-grid" aria-hidden="true"></div>
+    <div class="hud-rings" aria-hidden="true"></div>
+    <div class="constellation-net" id="constellationNet" aria-hidden="true"></div>
     
     <!-- Stars - Multiple Layers -->
     <div class="stars" id="stars"></div>
@@ -1158,7 +1251,7 @@
         // Create stars - Layer 1 (Bright, close stars)
         function createStars() {
             const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 400; i++) {
+            for (let i = 0; i < 1000; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.style.left = Math.random() * 100 + '%';
@@ -1171,7 +1264,7 @@
         // Create stars - Layer 2 (Medium distance)
         function createStars2() {
             const starsContainer = document.getElementById('stars2');
-            for (let i = 0; i < 300; i++) {
+            for (let i = 0; i < 800; i++) {
                 const star = document.createElement('div');
                 star.style.position = 'absolute';
                 star.style.width = '1.5px';
@@ -1190,7 +1283,7 @@
         // Create stars - Layer 3 (Far, dim stars)
         function createStars3() {
             const starsContainer = document.getElementById('stars3');
-            for (let i = 0; i < 250; i++) {
+            for (let i = 0; i < 700; i++) {
                 const star = document.createElement('div');
                 star.style.position = 'absolute';
                 star.style.width = '1px';
@@ -1209,7 +1302,7 @@
         // Create distant stars (smaller, dimmer)
         function createDistantStars() {
             const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 600; i++) {
                 const star = document.createElement('div');
                 star.style.position = 'absolute';
                 star.style.width = '0.5px';
@@ -1226,13 +1319,13 @@
         // Create star clusters
         function createStarClusters() {
             const starsContainer = document.getElementById('stars');
-            const clusterCount = 5;
+            const clusterCount = 18;
             
             for (let c = 0; c < clusterCount; c++) {
                 const centerX = Math.random() * 100;
                 const centerY = Math.random() * 100;
                 
-                for (let i = 0; i < 30; i++) {
+                for (let i = 0; i < 28; i++) {
                     const star = document.createElement('div');
                     star.style.position = 'absolute';
                     star.style.width = (Math.random() * 1.5 + 0.5) + 'px';
@@ -1251,7 +1344,7 @@
         // Create cosmic dust - Layer 1
         function createCosmicDust() {
             const container = document.getElementById('spaceDust1');
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 420; i++) {
                 const dust = document.createElement('div');
                 dust.style.position = 'absolute';
                 dust.style.width = (Math.random() * 4 + 1) + 'px';
@@ -1270,7 +1363,7 @@
         // Create cosmic dust - Layer 2 (different colors)
         function createCosmicDust2() {
             const container = document.getElementById('spaceDust2');
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 320; i++) {
                 const dust = document.createElement('div');
                 dust.style.position = 'absolute';
                 dust.style.width = (Math.random() * 3 + 1) + 'px';
@@ -1289,7 +1382,7 @@
         // Create cosmic rays
         function createCosmicRays() {
             const container = document.getElementById('cosmicRays');
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 45; i++) {
                 const ray = document.createElement('div');
                 ray.style.position = 'absolute';
                 ray.style.width = '1px';
@@ -1318,7 +1411,7 @@
         // Create asteroids
         function createAsteroids() {
             const container = document.getElementById('bgParticles');
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 36; i++) {
                 const asteroid = document.createElement('div');
                 asteroid.style.position = 'absolute';
                 asteroid.style.width = (Math.random() * 4 + 2) + 'px';
@@ -1374,7 +1467,7 @@
         // Create background particles
         function createBgParticles() {
             const container = document.getElementById('bgParticles');
-            for (let i = 0; i < 80; i++) {
+            for (let i = 0; i < 260; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'bg-particle';
                 particle.style.left = Math.random() * 100 + '%';
@@ -1423,12 +1516,12 @@
 
             function buildStarField() {
                 stars.length = 0;
-                const starCount = Math.min(420, Math.max(180, Math.floor((width * height) / 5200)));
+                const starCount = Math.min(2200, Math.max(720, Math.floor((width * height) / 1600)));
                 for (let i = 0; i < starCount; i++) {
                     stars.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        size: randomBetween(0.45, 2.2),
+                        size: randomBetween(0.14, 2.2),
                         alphaBase: randomBetween(0.18, 0.85),
                         alphaSwing: randomBetween(0.08, 0.35),
                         twinkleSpeed: randomBetween(0.2, 1.4),
@@ -1572,6 +1665,51 @@
             rafId = requestAnimationFrame(renderFrame);
         }
 
+        function createConstellationNet() {
+            const layer = document.getElementById('constellationNet');
+            if (!layer) return;
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const nodeCount = 320;
+            const nodes = [];
+
+            for (let i = 0; i < nodeCount; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                nodes.push({ x, y });
+                const dot = document.createElement('div');
+                dot.className = 'const-node';
+                dot.style.left = `${x}px`;
+                dot.style.top = `${y}px`;
+                dot.style.opacity = `${Math.random() * 0.7 + 0.2}`;
+                dot.style.transform = `scale(${Math.random() * 1.7 + 0.35})`;
+                layer.appendChild(dot);
+            }
+
+            for (let i = 0; i < nodes.length; i++) {
+                const a = nodes[i];
+                let links = 0;
+                for (let j = i + 1; j < nodes.length && links < 4; j++) {
+                    const b = nodes[j];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const distance = Math.hypot(dx, dy);
+                    if (distance < 128 && Math.random() > 0.73) {
+                        const link = document.createElement('div');
+                        link.className = 'const-link';
+                        link.style.left = `${a.x}px`;
+                        link.style.top = `${a.y}px`;
+                        link.style.width = `${distance}px`;
+                        link.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+                        link.style.opacity = `${Math.max(0.06, 1 - distance / 140)}`;
+                        layer.appendChild(link);
+                        links++;
+                    }
+                }
+            }
+        }
+
         function playGame(game) {
             window.location.href = `games/${game}.html`;
         }
@@ -1596,6 +1734,7 @@
         createBgParticles();
         addTwinkleEffect();
         createDeepSpaceField();
+        createConstellationNet();
     </script>
 </body>
 </html>
