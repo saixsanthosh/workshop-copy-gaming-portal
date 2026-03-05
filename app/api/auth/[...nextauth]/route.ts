@@ -14,11 +14,11 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: '/',
+    signIn: '/login.html',
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl + '/dashboard'
+      return url.startsWith(baseUrl) ? url : baseUrl + '/dashboard.html'
     },
   },
 })
