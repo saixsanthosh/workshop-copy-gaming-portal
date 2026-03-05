@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snakes and Ladders</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: radial-gradient(circle at 20% 20%, #0b1229 0%, #04060f 45%, #02030a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .particles-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .aurora {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(58, 123, 213, 0.22), transparent 40%),
+                radial-gradient(circle at 80% 10%, rgba(125, 60, 152, 0.2), transparent 45%),
+                radial-gradient(circle at 70% 80%, rgba(24, 179, 149, 0.16), transparent 40%);
+            filter: blur(18px);
+        }
+
+        .header {
+            position: relative;
+            z-index: 3;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(112, 181, 255, 0.35);
+            background: rgba(3, 10, 26, 0.64);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .title {
+            color: #c7e5ff;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 14px rgba(124, 202, 255, 0.55);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: 1px solid rgba(116, 180, 255, 0.6);
+            background: rgba(10, 27, 63, 0.6);
+            color: #e2f2ff;
+            padding: 10px 14px;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(4, 15, 38, 0.45);
+        }
+
+        .btn:hover {
+            background: rgba(39, 90, 180, 0.65);
+            box-shadow: 0 12px 28px rgba(42, 117, 240, 0.32);
+            transform: translateY(-1px);
+        }
+
+        .page {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .note {
+            font-size: 10px;
+            color: #ffd87a;
+            text-align: center;
+            line-height: 1.6;
+            text-shadow: 0 0 6px rgba(255, 216, 122, 0.3);
+        }
+
+        .frame-wrap {
+            flex: 1;
+            border: 1px solid rgba(110, 188, 255, 0.46);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(145, 209, 255, 0.15);
+            background: rgba(2, 6, 18, 0.72);
+            min-height: 760px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 760px;
+            border: 0;
+            background: #000;
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .title {
+                font-size: 13px;
+            }
+
+            .frame-wrap,
+            iframe {
+                min-height: 640px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js" class="particles-bg"></div>
+    <div class="aurora"></div>
+
+    <header class="header">
+        <div class="title">Snakes and Ladders</div>
+        <div class="actions">
+            <button class="btn" type="button" onclick="window.location.href='../dashboard.html'">BACK</button>
+        </div>
+    </header>
+
+    <main class="page">
+        <p class="note">Use the game controls shown inside each game.</p>
+        <div class="frame-wrap">
+            <iframe id="gameFrame" src="./local-games/snakes-ladders/index.html" title="Snakes and Ladders"></iframe>
+        </div>
+    </main>
+
+    <script src="../assets/vendor/particles/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 85, "density": { "enable": true, "value_area": 1000 } },
+                "color": { "value": ["#61dafb", "#9b6dff", "#f7ce68"] },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.35, "random": true },
+                "size": { "value": 2.8, "random": true },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 130,
+                    "color": "#6ab7ff",
+                    "opacity": 0.18,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.2,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "window",
+                "events": {
+                    "onhover": { "enable": true, "mode": "grab" },
+                    "onclick": { "enable": true, "mode": "push" },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": { "distance": 130, "line_linked": { "opacity": 0.42 } },
+                    "push": { "particles_nb": 3 }
+                }
+            },
+            "retina_detect": true
+        });
+
+        const frame = document.getElementById('gameFrame');
+        frame.addEventListener('load', () => {
+            try {
+                frame.contentWindow.focus();
+            } catch (_) {
+                // no-op
+            }
+        });
+    </script>
+</body>
+</html>
+
+
